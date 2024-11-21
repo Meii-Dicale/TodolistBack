@@ -53,6 +53,47 @@ router.post('/updateStateTask/:id', (req, res) => {
     } );
 });
 
+// Afficher les taches en cours 
+
+router.get('/tasksInProgress', (req, res) => {
+    const tasksInProgress = "SELECT * FROM task WHERE idState = 2"
+    bdd.query(tasksInProgress, (error, result) => {
+        if (error) throw error;
+        res.send(result)
+    } );
+});
+
+// Afficher les taches terminées
+
+router.get('/tasksFinished', (req, res) => {
+    const tasksFinished = "SELECT * FROM task WHERE idState = 3"
+    bdd.query(tasksFinished, (error, result) => {
+        if (error) throw error;
+        res.send(result)
+    } );
+});
+
+// Afficher les tâches a faire 
+
+router.get('/tasksToDo', (req, res) => {
+    const tasksToDo = "SELECT * FROM task WHERE idState = 1"
+    bdd.query(tasksToDo, (error, result) => {
+        if (error) throw error;
+        res.send(result)
+    } );
+});
+
+// Rechercher une tâche 
+
+router.post('/searchTask', (req, res) => {
+    const {libelleTask } = req.body;
+    const searchTask = "SELECT * FROM task WHERE libelleTask LIKE?"
+    bdd.query(searchTask, ['%' + libelleTask + '%'], (error, result) => {
+        if (error) throw error;
+        res.send(result)
+    } );
+});
+
 
 
 module.exports = router;
