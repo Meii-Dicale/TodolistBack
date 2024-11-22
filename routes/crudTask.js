@@ -8,7 +8,7 @@ const bdd = require('../config/bdd');
 
 router.post('/createTask', (req, res) => {
     const {libelleTask } = req.body;
-    const createTask = "INSERT INTO task (libelleTask,idUser, idState ) VALUES (?, 2 , 1)"
+    const createTask = "INSERT INTO task (libelleTask,idUser, idState ) VALUES (?, 4 , 1)"
     bdd.query(createTask,[libelleTask], (error, result) => {
     //const {libelleTask, idConnectedUser } = req.body;
     //const createTask = "INSERT INTO task (libelleTask,idUser, idState ) VALUES (?, ? , 1)"
@@ -20,8 +20,9 @@ router.post('/createTask', (req, res) => {
 
 // supprimer une tâche
 
-router.post('/deleteTask/:id', (req, res) => {
+router.get('/deleteTask/:id', (req, res) => {
     const idTask = req.params.id;
+    console.log(idTask);
     const deleteTask = "DELETE FROM task WHERE idTask =?"
     bdd.query(deleteTask, [idTask], (error, result) => {
         if (error) throw error;
@@ -87,7 +88,7 @@ router.get('/tasksToDo', (req, res) => {
 
 router.post('/searchTask', (req, res) => {
     const {libelleTask } = req.body;
-    const searchTask = "SELECT * FROM task WHERE libelleTask LIKE?"
+    const searchTask = "SELECT * FROM task WHERE libelleTask LIKE ?"
     bdd.query(searchTask, ['%' + libelleTask + '%'], (error, result) => {
         if (error) throw error;
         res.send(result)

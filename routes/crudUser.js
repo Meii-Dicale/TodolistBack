@@ -33,24 +33,51 @@ router.get ('/getAllUsers', (req, res) => {
     })});
 
 // créer un module de connexion
+
 router.post('/loginUser', async (req, res) => {
-    console.log(req.body);
-    const {nameUser, passwordUser} = req.body;
-    const getUser = "SELECT * FROM user WHERE nameUser =?"
-    bdd.query(getUser, [nameUser], async (error, result) => {
-        if(error) throw error;
-        if(result.length === 0){
-            res.send('Utilisateur non trouvé')
-        } else {
-            const match = await bcrypt.compare(passwordUser, result[0].passwordUser)
-            if(match){
-                res.send('Connexion réussie')
-            } else {
-                res.send('Mot de passe incorrect')
-            }
+    try {
+        console.log(req.body);
+
+        const { nameUser, passwordUser } = req.body;
+
+        // Vérification si les champs sont remplis
+        if (!nameUser || !passwordUser) {
+            return res.status(400).json({ message: "Nom d'utilisateur et mot de passe requis" });
         }
-    })
+
+        const getUserQuery = "SELECT * FROM user WHERE nameUser = ?";
+        
+        bdd.query(getUserQuery, [nameUser], async (error, result) => {
+            if (error) {
+                console.error(error);
+                return res.status(500).json({ message: "Erreur interne du serveur" });
+            }
+
+            if (result.length === 0) {
+                // Aucun utilisateur trouvé 
+                return res.status(404).json({ message: "Utilisateur non trouvé" });
+            }
+
+            const user = result[0];
+            const match = await bcrypt.compare(passwordUser, user.passwordUser);
+
+            if (match) {
+                // Connexion réussie
+                return res.status(200).json({ message: "Connexion réussie", user: { id: user.id, nameUser: user.nameUser } });
+            } else {
+                // Mot de passe incorrect
+                return res.status(401).json({ message: "Mot de passe incorrect" });
+            }
+        });
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: "Erreur interne du serveur" });
+    }
 });
+
+
+
 
 // Modifier un Utilisateur
 router.post('/updateUser/:id', async (req, res) => {
