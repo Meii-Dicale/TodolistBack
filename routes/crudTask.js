@@ -12,6 +12,7 @@ router.post('/createTask', (req, res) => {
     bdd.query(createTask,[ libelleTask, idUser], (error, result) => {
         if (error) throw error;
         console.log('Tâche ajoutée')
+        res.status(200).json({ message: 'Tâche ajoutée' });
     } );
 });
 
@@ -24,6 +25,7 @@ router.get('/deleteTask/:id', (req, res) => {
     bdd.query(deleteTask, [idTask], (error, result) => {
         if (error) throw error;
         console.log('Tâche supprimée')
+        res.status(200).json({ message: 'Tâche supprimée' });
     } );
 });
 
@@ -83,6 +85,14 @@ router.post('/tasksToDo', (req, res) => {
         res.send(result)
     } );
 });
+
+router.post('/allTasks', (req, res) => {
+    const {idUser} = req.body
+    const allTasks = "SELECT * FROM task WHERE idUser =(?)"
+    bdd.query(allTasks,[idUser], (error, result) => {
+        if (error) throw error;
+        res.send(result)
+    } )});
 
 
 
