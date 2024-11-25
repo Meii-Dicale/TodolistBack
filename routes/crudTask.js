@@ -7,12 +7,9 @@ const bdd = require('../config/bdd');
 // Créer une tâche 
 
 router.post('/createTask', (req, res) => {
-    const {libelleTask } = req.body;
-    const createTask = "INSERT INTO task (libelleTask,idUser, idState ) VALUES (?, 4 , 1)"
-    bdd.query(createTask,[libelleTask], (error, result) => {
-    //const {libelleTask, idConnectedUser } = req.body;
-    //const createTask = "INSERT INTO task (libelleTask,idUser, idState ) VALUES (?, ? , 1)"
-    //bdd.query(createTask,[libelleTask, idConnectedUser], (error, result) => {
+    const {idUser, libelleTask} = req.body;
+    const createTask = "INSERT INTO task (libelleTask,idUser, idState ) VALUES (?, ? , 1)"
+    bdd.query(createTask,[ libelleTask, idUser], (error, result) => {
         if (error) throw error;
         console.log('Tâche ajoutée')
     } );
@@ -23,7 +20,7 @@ router.post('/createTask', (req, res) => {
 router.get('/deleteTask/:id', (req, res) => {
     const idTask = req.params.id;
     console.log(idTask);
-    const deleteTask = "DELETE FROM task WHERE idTask =?"
+    const deleteTask = "DELETE FROM task WHERE idTask =(?)"
     bdd.query(deleteTask, [idTask], (error, result) => {
         if (error) throw error;
         console.log('Tâche supprimée')
@@ -56,9 +53,10 @@ router.post('/updateStateTask/:id', (req, res) => {
 
 // Afficher les taches en cours 
 
-router.get('/tasksInProgress', (req, res) => {
-    const tasksInProgress = "SELECT * FROM task WHERE idState = 2"
-    bdd.query(tasksInProgress, (error, result) => {
+router.post('/tasksInProgress', (req, res) => {
+    const {idUser} = req.body
+    const tasksInProgress = "SELECT * FROM task WHERE idState = 2 AND idUser =(?)"
+    bdd.query(tasksInProgress, [idUser], (error, result) => {
         if (error) throw error;
         res.send(result)
     } );
@@ -66,9 +64,10 @@ router.get('/tasksInProgress', (req, res) => {
 
 // Afficher les taches terminées
 
-router.get('/tasksFinished', (req, res) => {
-    const tasksFinished = "SELECT * FROM task WHERE idState = 3"
-    bdd.query(tasksFinished, (error, result) => {
+router.post('/tasksFinished', (req, res) => {
+    const {idUser} = req.body
+    const tasksFinished = "SELECT * FROM task WHERE idState = 3 AND idUser =(?)"
+    bdd.query(tasksFinished,[idUser], (error, result) => {
         if (error) throw error;
         res.send(result)
     } );
@@ -76,24 +75,15 @@ router.get('/tasksFinished', (req, res) => {
 
 // Afficher les tâches a faire 
 
-router.get('/tasksToDo', (req, res) => {
-    const tasksToDo = "SELECT * FROM task WHERE idState = 1"
-    bdd.query(tasksToDo, (error, result) => {
+router.post('/tasksToDo', (req, res) => {
+    const {idUser} = req.body
+    const tasksToDo = "SELECT * FROM task WHERE idState = 1 AND idUser =(?)"
+    bdd.query(tasksToDo,[idUser], (error, result) => {
         if (error) throw error;
         res.send(result)
     } );
 });
 
-// Rechercher une tâche 
-
-router.post('/searchTask', (req, res) => {
-    const {libelleTask } = req.body;
-    const searchTask = "SELECT * FROM task WHERE libelleTask LIKE ?"
-    bdd.query(searchTask, ['%' + libelleTask + '%'], (error, result) => {
-        if (error) throw error;
-        res.send(result)
-    } );
-});
 
 
 

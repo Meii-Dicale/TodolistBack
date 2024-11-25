@@ -2,6 +2,10 @@ const express = require('express');
 const router = express.Router();
 const bdd = require('../config/bdd');
 const bcrypt = require('bcrypt');
+const jwt = require("jsonwebtoken");
+const dotenv = require('dotenv');
+dotenv.config(); 
+const SECRET_KEY = process.env.SECRET_KEY ;
 
 // Créer un Utilisateur
 router.post('/createUser', async (req, res) => {
@@ -18,7 +22,7 @@ router.post('/createUser', async (req, res) => {
         } else {
     bdd.query(createUser,[nameUser, securedPassword], (error, result) => {
         if (error) throw error;
-        console.log('utilisateur ajouté')
+        res.send('utilisateur ajouté')
     } );
 }
 })
@@ -33,6 +37,7 @@ router.get ('/getAllUsers', (req, res) => {
     })});
 
 // créer un module de connexion
+
 
 router.post('/loginUser', async (req, res) => {
     try {
@@ -63,7 +68,18 @@ router.post('/loginUser', async (req, res) => {
 
             if (match) {
                 // Connexion réussie
-                return res.status(200).json({ message: "Connexion réussie", user: { id: user.id, nameUser: user.nameUser } });
+
+                // Créer un payload pour le JWT
+                const payload = {
+                    id: user.idUser
+                };
+
+                // Générer le JWT
+                const token = jwt.sign(payload, SECRET_KEY, { expiresIn: '1h' });
+
+                // Répondre avec le token JWT
+                return res.status(200).json({ message: "Connexion réussie", token });
+                
             } else {
                 // Mot de passe incorrect
                 return res.status(401).json({ message: "Mot de passe incorrect" });
@@ -76,29 +92,39 @@ router.post('/loginUser', async (req, res) => {
     }
 });
 
+router.post('/personnalInfo', (req, res) => {
+    const {idUser} = req.body;
+    const personnalInfo = "SELECT * FROM user WHERE idUser = (?)"
+    bdd.query(personnalInfo,[idUser], (error, result) => {
+        if (error) throw error;
+        res.send(result)
+    } );
+}
+)
+
+
 
 
 
 // Modifier un Utilisateur
-router.post('/updateUser/:id', async (req, res) => {
+router.post('/changePassword', async (req, res) => {
     console.log(req.body);
-    const {nameUser, passwordUser} = req.body;
-    const idUser = req.params.id;
+    const {idUser, passwordUser} = req.body;
     const securedPassword = await bcrypt.hash(passwordUser, 10)
-    const updateUser = "UPDATE user SET nameUser =?, passwordUser =? WHERE idUser =?"
-    bdd.query(updateUser,[nameUser, securedPassword, idUser], (error, result) => {
+    const updateUser = "UPDATE user SET  passwordUser =? WHERE idUser =?"
+    bdd.query(updateUser,[ securedPassword, idUser], (error, result) => {
         if (error) throw error;
         console.log('Utilisateur modifié')
     } );
 });
 
 // Supprimer un Utilisateur
-router.post('/deleteUser/:id', (req, res) => {
-    const idUser = req.params.id;
-    const deleteUser = "DELETE FROM user WHERE idUser =?"
+router.post('/deleteUser',  (req, res) => {
+    const {idUser} = req.body
+    const deleteUser = "DELETE FROM user WHERE idUser =(?)"
     bdd.query(deleteUser, [idUser], (error, result) => {
         if (error) throw error;
-        console.log('Utilisateur supprimé')
+        console.log('Utilisateur supprimé'+ idUser)
     } );
 });
 

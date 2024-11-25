@@ -4,6 +4,7 @@ const crudUser = require('./routes/crudUser');
 const crudTask = require('./routes/crudTask');
 const cors = require('cors');
 
+
 app.use(cors({
     origin: 'http://localhost:5173', // Autorise uniquement cette origine
     methods: ['GET', 'POST', 'PUT', 'DELETE'], // Liste des méthodes autorisées
@@ -11,6 +12,8 @@ app.use(cors({
   }));
 
 app.use(express.json());
+
+
 
 app.use('/user', crudUser);
 app.use('/task', crudTask)
