@@ -7,6 +7,21 @@ const dotenv = require('dotenv');
 dotenv.config(); 
 const SECRET_KEY = process.env.SECRET_KEY ;
 
+const authenticateToken = (req, res, next) => {
+    const token = req.header('Authorization')?.split(' ')[1];
+    console.log(token);
+    if (!token) return res.status(401).json({ error: 'Token manquant' });
+
+    try {
+        const decoded = jwt.verify(token, SECRET_KEY);
+        req.user = decoded; // Stocke les données du token dans req.user
+        next();
+    } catch (err) {
+        res.status(403).json({ error: 'Token invalide' });
+        console.error(err);
+    }
+};
+
 // Créer un Utilisateur
 router.post('/createUser', async (req, res) => {
     console.log(req.body);
@@ -27,14 +42,6 @@ router.post('/createUser', async (req, res) => {
 }
 })
 });
-
-// Récupérer la liste des Utilisateurs
-router.get ('/getAllUsers', (req, res) => {
-    const getAllUsers = "SELECT nameUser FROM user"
-    bdd.query(getAllUsers, (error, result) => {
-        if (error) throw error;
-        res.send(result)
-    })});
 
 // créer un module de connexion
 
@@ -92,9 +99,9 @@ router.post('/loginUser', async (req, res) => {
     }
 });
 
-router.post('/personnalInfo', (req, res) => {
+router.post('/personnalInfo',  authenticateToken, (req, res) => {
     const {idUser} = req.body;
-    const personnalInfo = "SELECT * FROM user WHERE idUser = (?)"
+    const personnalInfo = "SELECT nameUser FROM user WHERE idUser = (?)"
     bdd.query(personnalInfo,[idUser], (error, result) => {
         if (error) throw error;
         res.send(result)
@@ -107,7 +114,7 @@ router.post('/personnalInfo', (req, res) => {
 
 
 // Modifier un Utilisateur
-router.post('/changePassword', async (req, res) => {
+router.post('/changePassword', authenticateToken, async (req, res) => {
     console.log(req.body);
     const {idUser, passwordUser} = req.body;
     const securedPassword = await bcrypt.hash(passwordUser, 10)
@@ -115,16 +122,18 @@ router.post('/changePassword', async (req, res) => {
     bdd.query(updateUser,[ securedPassword, idUser], (error, result) => {
         if (error) throw error;
         console.log('Utilisateur modifié')
+        res.send('Utilisateur modifié')
     } );
 });
 
 // Supprimer un Utilisateur
-router.post('/deleteUser',  (req, res) => {
+router.post('/deleteUser', authenticateToken, (req, res) => {
     const {idUser} = req.body
     const deleteUser = "DELETE FROM user WHERE idUser =(?)"
     bdd.query(deleteUser, [idUser], (error, result) => {
         if (error) throw error;
         console.log('Utilisateur supprimé'+ idUser)
+        res.send('Utilisateur supprimé')
     } );
 });
 
